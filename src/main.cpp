@@ -76,7 +76,7 @@ void loop() {
 
     Serial.printf("%d, %d, %d, %d, %d\n", med0, med1, med2, med3, med4);
 
-    delay(1); //1mS
+    delay(1);
     
     return;
 
