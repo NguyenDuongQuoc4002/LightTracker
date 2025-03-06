@@ -1,7 +1,6 @@
-#include <Arduino.h>
+#include <stdint.h>
 #define RING_BUFF_NOT_READY 0x0
 #define RING_BUFF_READY 0x1
-
 
 struct RingBuffer {
     // Number of node in the ring
@@ -17,7 +16,7 @@ struct RingBuffer {
     uint8_t ready;
 
     // Median value of the ring
-    u_int32_t sum;
+    uint32_t sum;
 };
 
 /**
@@ -30,4 +29,7 @@ void RingBuff_Set(RingBuffer *rb, uint16_t value);
  */
 void RingBuff_Setup(RingBuffer *rb);
 
+/**
+ * Getting the median value for the buffer
+ */
 uint16_t RingBuff_Median(RingBuffer *rb);
