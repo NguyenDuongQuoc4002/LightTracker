@@ -2,6 +2,8 @@
 #include <Led.h>
 #include <LightSensorArray.h>
 #include <RingBuffer.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
 
 #define BUILTIN_LED_PIN GPIO_NUM_2
 #define SENSOR_NUM 5
@@ -35,6 +37,14 @@ RingBuffer rb4 = {.size = SENSOR_SAMPLES, .buffer = buffer4, .index = 0, .ready 
 uint16_t buffer5[SENSOR_SAMPLES] = { 0 };
 RingBuffer rb5 = {.size = SENSOR_SAMPLES, .buffer = buffer5, .index = 0, .ready = RING_BUFF_NOT_READY}; 
 
+const char* ssid = "SPHINX-Mac";      
+const char* password = "onganhtot";
+const char* mqttServer = "192.168.1.103"; 
+const int mqttPort = 1880;
+const char* mqttTopic = "esp32/sensor";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 void setup() {
     Serial.begin(115200);
@@ -48,6 +58,25 @@ void setup() {
     RingBuff_Setup(&rb3);
     RingBuff_Setup(&rb4);
     RingBuff_Setup(&rb5);
+
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+    Serial.println("\nWiFi connected");
+
+    client.setServer(mqttServer, mqttPort);
+    while (!client.connected()) {
+    Serial.print("Connecting to MQTT...");
+    if (client.connect("ESP32Client")) {
+      Serial.println("Connected");
+    } else {
+      Serial.print("Failed, rc=");
+      Serial.print(client.state());
+      delay(2000);
+    }
+  }
 }
 
 void loop() {
@@ -73,11 +102,28 @@ void loop() {
     RingBuff_Set(&rb5, result[4]);
     u_int16_t med4 = RingBuff_Median(&rb5);
 
+    // Serial.printf("%d, %d, %d, %d, %d\n", med0, med1, med2, med3, med4);
 
-    Serial.printf("%d, %d, %d, %d, %d\n", med0, med1, med2, med3, med4);
+    // delay(1);
 
-    delay(1);
-    
+    char message[50];
+
+    sprintf(message, "%d", med0);
+    client.publish("esp32/sensor1", message);
+
+    sprintf(message, "%d", med1);
+    client.publish("esp32/sensor2", message);
+
+    sprintf(message, "%d", med2);
+    client.publish("esp32/sensor3", message);
+
+    sprintf(message, "%d", med3);
+    client.publish("esp32/sensor4", message);
+
+    sprintf(message, "%d", med4);
+    client.publish("esp32/sensor5", message);
+
+    delay(2000);
     return;
 
 }
